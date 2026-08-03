@@ -1,0 +1,33 @@
+[project]
+name = "kimo-fastapi"
+version = "1.0.0"
+description = "Kimo 博客系统 · FastAPI + Tortoise ORM 重构版（纯 API + JWT）"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ChanYiCYJ" }]
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "tortoise-orm>=0.22",
+    "aerich>=0.7",
+    "pydantic-settings>=2.0",
+    "email-validator>=2.0",
+    "python-multipart>=0.0.9",
+    "PyJWT>=2.8",
+    "werkzeug>=3.0",
+    "Markdown>=3.5",
+    "pymdown-extensions>=10.0",
+    "pypinyin>=0.50",
+]
+
+[project.optional-dependencies]
+# MySQL 驱动（使用 MySQL 必装）
+mysql = ["aiomysql>=0.2"]
+# 测试
+test = ["pytest>=8.0", "httpx>=0.27", "pytest-anyio>=0.0.1"]
+
+[tool.aerich]
+# 供 aerich 迁移工具读取的 ORM 配置（注意用点号格式）
+tortoise_orm = "app.core.database.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
