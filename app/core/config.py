@@ -39,6 +39,16 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 5 * 1024 * 1024  # 5MB
     ALLOWED_UPLOAD_EXTS: str = "jpg,jpeg,png,gif,webp"
 
+    # ----- 注册与默认管理员 -----
+    # 是否开放注册（优先级低于站点设置 allow_register："0"/"false" = 关闭注册）
+    ALLOW_REGISTER: bool = True
+    # 首次启动是否自动创建默认管理员（仅当库中不存在任何 role=0 用户时）
+    AUTO_CREATE_ADMIN: bool = True
+    # 默认管理员账号（部署后务必通过环境变量修改 ADMIN_PASSWORD！）
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_EMAIL: str = "admin@kimo.dev"
+    ADMIN_PASSWORD: str = "admin123"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

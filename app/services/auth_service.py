@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from app.core.security import create_access_token, hash_password, verify_password
 from app.crud.user import user as user_crud
 from app.models.user import UserInfo
+from app.services.init_service import is_register_allowed
 
 
 async def authenticate(user_info: str, password: str) -> UserInfo | None:
@@ -37,7 +38,18 @@ async def login(user_info: str, password: str) -> dict:
 
 
 async def register(username: str, email: str, password: str) -> dict:
-    """注册普通用户（role=1），密码做哈希存储。"""
+    """注册普通用户（role=1），密码做哈希存储。
+
+    注意：
+    - 注册创建的账户一律为普通用户（role=1），【不会】成为管理员；
+      管理员由启动时的 ensure_default_admin() 自动创建，或手动将库中 role 置 0。
+    - 若站点关闭了开放注册（allow_register=0 或 ALLOW_REGISTER=False），将拒绝注册。
+    """
+    if not await is_register_allowed():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="当前站点未开放注册，请联系管理员",
+        )
     if await user_crud.get_by_username(username):
         raise HTTPException(status_code=400, detail="用户名已存在")
     if await user_crud.get_by_email(email):

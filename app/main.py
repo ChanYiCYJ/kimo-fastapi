@@ -12,13 +12,16 @@ from fastapi.staticfiles import StaticFiles
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import close_db, init_db
+from app.services.init_service import ensure_default_admin
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期：启动时初始化数据库，关闭时释放连接。"""
+    """应用生命周期：启动时初始化数据库、确保默认管理员，关闭时释放连接。"""
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     await init_db()
+    # 自动创建初始管理员（可经 AUTO_CREATE_ADMIN / ADMIN_* 配置，详见 config.py）
+    await ensure_default_admin()
     yield
     await close_db()
 
