@@ -6,6 +6,7 @@ from app.api.v1.endpoints import (
     auth,
     categories,
     pages,
+    search,
     settings,
     tags,
     upload,
@@ -19,3 +20,4 @@ api_router.include_router(tags.router)
 api_router.include_router(pages.router)
 api_router.include_router(settings.router)
 api_router.include_router(upload.router)
+api_router.include_router(search.router)
