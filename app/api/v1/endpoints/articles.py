@@ -12,10 +12,13 @@ router = APIRouter(prefix="/articles", tags=["文章"])
 @router.get("", response_model=ApiResponse, summary="文章列表（分页/筛选/搜索）")
 async def list_articles(
     page: int = Query(1, ge=1, description="页码"),
+    page_size: int | None = Query(None, ge=1, le=50, description="每页数量（默认 5）"),
     category_id: int | None = Query(None, description="按分类过滤"),
     keyword: str | None = Query(None, description="标题关键词"),
 ) -> dict:
-    data = await article_service.list_articles(page=page, category_id=category_id, keyword=keyword)
+    data = await article_service.list_articles(
+        page=page, category_id=category_id, keyword=keyword, page_size=page_size
+    )
     return {"data": data}
 
 

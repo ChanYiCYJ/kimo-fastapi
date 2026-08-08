@@ -12,7 +12,7 @@ router = APIRouter(prefix="/upload", tags=["上传"])
 
 
 @router.post("/image", response_model=ApiResponse, summary="上传图片（管理员）")
-async def upload_image(file: UploadFile = File(...), _: CurrentAdmin = None) -> dict:
+async def upload_image(file: UploadFile = File(...), admin: CurrentAdmin = None) -> dict:
     ext = ""
     if "." in (file.filename or ""):
         ext = file.filename.rsplit(".", 1)[-1].lower()
@@ -29,5 +29,20 @@ async def upload_image(file: UploadFile = File(...), _: CurrentAdmin = None) -> 
     path = os.path.join(settings.UPLOAD_DIR, filename)
     with open(path, "wb") as f:
         f.write(content)
+
+    # 写入媒体库（便于后台媒体管理页浏览/删除；写入失败不阻塞上传）
+    from app.models.media import Media
+
+    try:
+        await Media.create(
+            filename=filename,
+            original_name=file.filename,
+            url=f"/static/uploads/{filename}",
+            size=len(content),
+            mime=file.content_type,
+            uploader_id=admin.id if admin else None,
+        )
+    except Exception:
+        pass
 
     return {"data": {"url": f"/static/uploads/{filename}", "filename": filename}}

@@ -20,15 +20,21 @@ class CRUDArticle(CRUDBase[Article]):
         return await self._with_relations(self.model.get_or_none(id=id))
 
     async def get_multi_page(
-        self, *, page: int = 1, category_id: int | None = None, keyword: str | None = None
+        self,
+        *,
+        page: int = 1,
+        category_id: int | None = None,
+        keyword: str | None = None,
+        page_size: int | None = None,
     ) -> list[Article]:
-        """分页查询（每页 5 条），支持分类过滤与标题关键词搜索。"""
+        """分页查询（每页 5 条，可指定 page_size），支持分类过滤与标题关键词搜索。"""
         query = self._with_relations(self.model.all())
         if category_id is not None:
             query = query.filter(category_id=category_id)
         if keyword:
             query = query.filter(title__icontains=keyword)
-        return await query.offset((page - 1) * self.PAGE_SIZE).limit(self.PAGE_SIZE)
+        size = page_size or self.PAGE_SIZE
+        return await query.offset((page - 1) * size).limit(size)
 
     async def count(
         self, *, category_id: int | None = None, keyword: str | None = None

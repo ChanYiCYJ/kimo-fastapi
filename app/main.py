@@ -3,15 +3,20 @@
 启动方式（在 backend 目录下）：
     uvicorn app.main:app --reload
 """
+import asyncio
 import os
+import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import close_db, init_db
+from app.core.security import decode_access_token
+from app.crud.user import user as user_crud
+from app.models.log import SysLog
 from app.services.init_service import ensure_default_admin
 
 
@@ -32,6 +37,70 @@ app = FastAPI(
     description="Kimo 博客系统 · FastAPI + Tortoise ORM 重构版（纯 API + JWT）",
     lifespan=lifespan,
 )
+
+
+async def _write_log(
+    user_id, username, action, method, path, status, ms, ip
+) -> None:
+    """后台任务：写操作日志（失败不影响业务）。"""
+    try:
+        await SysLog.create(
+            user_id=user_id,
+            username=username,
+            action=action,
+            method=method,
+            path=path,
+            status=status,
+            ms=ms,
+            ip=ip,
+        )
+    except Exception:
+        pass
+
+
+@app.middleware("http")
+async def log_write_actions(request: Request, call_next):
+    """记录所有写操作（POST/PUT/DELETE/PATCH）到操作日志（sys_log）。
+
+    写日志放到后台任务执行，避免阻塞业务响应。
+    """
+    start = time.time()
+    response = await call_next(request)
+    ms = int((time.time() - start) * 1000)
+    if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        user_id = None
+        username = None
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            try:
+                payload = decode_access_token(auth[7:])
+                uid = int(payload["sub"])
+                u = await user_crud.get(uid)
+                if u:
+                    user_id = uid
+                    username = u.user_name or u.email
+            except Exception:
+                pass
+        action = {
+            "POST": "CREATE",
+            "PUT": "UPDATE",
+            "DELETE": "DELETE",
+            "PATCH": "UPDATE",
+        }.get(request.method, "CREATE")
+        asyncio.create_task(
+            _write_log(
+                user_id,
+                username,
+                action,
+                request.method,
+                str(request.url.path),
+                response.status_code,
+                ms,
+                request.client.host if request.client else None,
+            )
+        )
+    return response
+
 
 # 静态文件（上传的图片）
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

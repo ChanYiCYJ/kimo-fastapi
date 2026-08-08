@@ -8,6 +8,12 @@ class TagCreate(BaseModel):
     tag_name: str = Field(..., min_length=1, max_length=50, description="标签名")
 
 
+class TagUpdate(BaseModel):
+    """更新标签入参。"""
+
+    tag_name: str | None = Field(None, min_length=1, max_length=50, description="标签名")
+
+
 class TagOut(BaseModel):
     """标签出参。"""
 

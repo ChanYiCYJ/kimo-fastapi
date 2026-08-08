@@ -74,20 +74,24 @@ def _to_detail(article: Article, tags: list[dict]) -> dict:
 
 
 async def list_articles(
-    page: int = 1, category_id: int | None = None, keyword: str | None = None
+    page: int = 1,
+    category_id: int | None = None,
+    keyword: str | None = None,
+    page_size: int | None = None,
 ) -> dict:
-    """分页文章列表。"""
+    """分页文章列表（page_size 可自定义，默认 5）。"""
+    size = page_size or article_crud.PAGE_SIZE
     items = await article_crud.get_multi_page(
-        page=page, category_id=category_id, keyword=keyword
+        page=page, category_id=category_id, keyword=keyword, page_size=size
     )
     total = await article_crud.count(category_id=category_id, keyword=keyword)
-    total_page = max(1, math.ceil(total / article_crud.PAGE_SIZE))
+    total_page = max(1, math.ceil(total / size))
     tags_map = await _load_tags_map(items)
     return {
         "items": [_to_list_item(a, tags_map.get(a.id, [])) for a in items],
         "total": total,
         "page": page,
-        "page_size": article_crud.PAGE_SIZE,
+        "page_size": size,
         "total_page": total_page,
     }
 

@@ -13,6 +13,14 @@ class CategoryCreate(BaseModel):
     slug: str | None = Field(None, max_length=50, description="拼音别名")
 
 
+class CategoryUpdate(BaseModel):
+    """更新分类入参（字段均可选）。"""
+
+    name: str | None = Field(None, min_length=1, max_length=50, description="分类名")
+    description: str | None = Field(None, max_length=200, description="描述")
+    slug: str | None = Field(None, max_length=50, description="拼音别名（空则按名称生成）")
+
+
 class CategoryOut(BaseModel):
     """分类出参。"""
 

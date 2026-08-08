@@ -2,7 +2,7 @@
 from fastapi import APIRouter
 
 from app.api.deps import CurrentAdmin
-from app.schemas.category import CategoryCreate, CategoryOut
+from app.schemas.category import CategoryCreate, CategoryOut, CategoryUpdate
 from app.schemas.common import ApiResponse
 from app.services import category_service
 
@@ -19,3 +19,15 @@ async def list_categories() -> dict:
 async def create_category(payload: CategoryCreate, _: CurrentAdmin) -> dict:
     data = await category_service.create_category(payload)
     return {"data": data}
+
+
+@router.put("/{category_id}", response_model=ApiResponse[CategoryOut], summary="更新分类（管理员）")
+async def update_category(category_id: int, payload: CategoryUpdate, _: CurrentAdmin) -> dict:
+    data = await category_service.update_category(category_id, payload)
+    return {"data": data}
+
+
+@router.delete("/{category_id}", response_model=ApiResponse, summary="删除分类（管理员）")
+async def delete_category(category_id: int, _: CurrentAdmin) -> dict:
+    await category_service.delete_category(category_id)
+    return {"message": "删除成功"}
