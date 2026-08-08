@@ -14,6 +14,7 @@ from app.api.v1.endpoints import (
     settings,
     stats,
     tags,
+    tts,
     upload,
     users,
 )
@@ -33,3 +34,4 @@ api_router.include_router(logs.router)
 api_router.include_router(comments.router)
 api_router.include_router(backups.router)
 api_router.include_router(search.router)
+api_router.include_router(tts.router)

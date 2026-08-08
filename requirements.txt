@@ -21,6 +21,9 @@ python-markdown>=3.5
 pymdown-extensions>=10.0
 pypinyin>=0.50
 
+# 文本转语音（TTS，免费微软 Edge 神经语音，无需 key）
+edge-tts>=6.1
+
 # 测试（可选）
 pytest>=8.0
 httpx>=0.27
